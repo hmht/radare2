@@ -814,6 +814,9 @@ static int set_reg_profile(RAnal *anal) {
 	const char *p =
 		"=PC	pc\n"
 		"=SP	sp\n"
+		"=SR	psw\n"
+		"=CF	c\n"
+		"=OF	ov\n"
 		"gpr	r0	.8	0	0\n"
 		"gpr	r1	.8	1	0\n"
 		"gpr	r2	.8	2	0\n"
@@ -827,13 +830,14 @@ static int set_reg_profile(RAnal *anal) {
 		"gpr	dptr	.16	10	0\n"
 		"gpr	dpl	.8	10	0\n"
 		"gpr	dph	.8	11	0\n"
-		"gpr	psw	.8	12	0\n"
-		"gpr	p	.1	.96	0\n"
-		"gpr	ov	.1	.98	0\n"
-		"gpr	ac	.1	.102	0\n"
-		"gpr	c	.1	.103	0\n"
+		"flg	psw	.8	12	0\n"
+		"flg	p	.1	12.0	0\n"
+		"flg	ov	.1	12.2	0\n"
+		"flg	ac	.1	.102	0\n"
+		"flg	c	.1	.103	0\n"
 		"gpr	sp	.8	13	0\n"
 		"gpr	pc	.16	15	0\n"
+		"flg	dpsel	.8	18	0\n"
 // ---------------------------------------------------
 // 8051 memory emulation control registers
 // These registers map 8051 memory classes to r2's
@@ -855,9 +859,9 @@ static int set_reg_profile(RAnal *anal) {
 //		r2 addr = (_pdata & 0xff) << 8 + x_data
 //		if 0xffffffnn, addr = ([SFRnn] << 8) + _xdata (TODO)
 		"gpr	_code	.32	20 0\n"
-		"gpr	_idata	.32 24 0\n"
+		"gpr	_idata	.32	24 0\n"
 		"gpr	_sfr	.32	28 0\n"
-		"gpr	_xdata	.32 32 0\n"
+		"gpr	_xdata	.32	32 0\n"
 		"gpr	_pdata	.32	36 0\n";
 
 	int retval = r_reg_set_profile_string (anal->reg, p);
@@ -867,6 +871,20 @@ static int set_reg_profile(RAnal *anal) {
 	}
 
 	return retval;
+}
+
+static int archinfo(RAnal*anal, int query)
+{
+	switch (query) {
+	break; case R_ANAL_ARCHINFO_ALIGN:
+		return 1;
+	break; case R_ANAL_ARCHINFO_MIN_OP_SIZE:
+		return 1;
+	break; case R_ANAL_ARCHINFO_MAX_OP_SIZE:
+		return 3;
+	break; default:
+		return -1;
+	}
 }
 
 static ut32 map_direct_addr(RAnal *anal, ut8 addr) {
@@ -1056,7 +1074,8 @@ RAnalPlugin r_anal_plugin_8051 = {
 	.op = &i8051_op,
 	.set_reg_profile = &set_reg_profile,
 	.esil_init = esil_i8051_init,
-	.esil_fini = esil_i8051_fini
+	.esil_fini = esil_i8051_fini,
+	.archinfo = &archinfo,
 };
 
 #ifndef R2_PLUGIN_INCORE

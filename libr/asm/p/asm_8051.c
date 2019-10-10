@@ -23,7 +23,7 @@ static int disassemble(RAsm *a, RAsmOp *op, const ut8 *buf, int len) {
 RAsmPlugin r_asm_plugin_8051 = {
 	.name = "8051",
 	.arch = "8051",
-	.bits = 8,
+	.bits = 16,
 	.endian = R_SYS_ENDIAN_NONE,
 	.desc = "8051 Intel CPU",
 	.disassemble = &disassemble,
@@ -31,7 +31,7 @@ RAsmPlugin r_asm_plugin_8051 = {
 	.license = "PD",
 	.cpus =
 		"8051-generic," // First one is default
-		"8051-shared-code-xdata"
+		"8051-shared-code-xdata",
 };
 
 #ifndef R2_PLUGIN_INCORE
