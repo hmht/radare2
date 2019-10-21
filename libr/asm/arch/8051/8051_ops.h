@@ -155,7 +155,7 @@ static _8051_op_t _8051_ops[] = {
 	{0x68, 1, OP_XRL, T (XOR), "xrl a, r%d", 1, M_RN, A_RN, 0, 0},
 	{0x70, 2, OP_JNZ, T (CJMP), "jnz 0x%04x", 2, M_NONE, A_OFFSET, 0, 0},
 	{0x72, 2, OP_ORL, T (OR), "orl c, 0x%02x.%d", 2, M_NONE, A_BIT, 0, 0},
-	{0x73, 2, OP_JMP, T (JMP), "jmp @a+dptr", 1, M_NONE, 0, 0, 0},
+	{0x73, 2, OP_JMP, T (SWITCH), "jmp @a+dptr", 1, M_NONE, 0, 0, 0},
 	{0x74, 1, OP_MOV, T (MOV), "mov a, #0x%02x", 2, M_NONE, A_IMMEDIATE, 0, 0},
 	{0x75, 2, OP_MOV, T (MOV), "mov 0x%02x, #0x%02x", 3, M_NONE, A_DIRECT, A_IMMEDIATE, 0},
 	{0x76, 1, OP_MOV, T (MOV), "mov @r%d, #0x%02x", 2, M_RI, A_RI, A_IMMEDIATE, 0},
