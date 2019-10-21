@@ -968,8 +968,16 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 		op->val = (arg1 == A_RI || arg1 == A_RN) ? buf[1] : buf[2];
 	}
 
+	if (op->ptr != -1 && op->refptr == 0) {
+		op->refptr = 1;
+	}
+
+
+	// TODO: op->reg, op->ireg
+
 	op->jump = -1;
 	op->fail = -1;
+
 	switch(_8051_ops[i].instr) {
 	default:
 	break; case OP_PUSH:
@@ -1012,11 +1020,15 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 					if (op->jump == -1) {
 						//op->jump = (buf[i + 1] << 8) | buf[i + 2];
 					}
+					r_strbuf_appendf (anal->cmdtail,
+						"f case.0x%"PFMT64x ".%d 1 @ 0x%08"PFMT64x "\n",
+						(ut64)addr, (int)(i - 1)/4, (ut64)(buf[i + 1] << 8) | buf[i + 2]);
 					i += 3;
 					continue;
 				}
 				break;
 			}
+			op->switch_op->def_val = (i - 1)/4;
 			op->switch_op->max_val = (i - 1)/4;
 			op->size += i - 1;
 		}
@@ -1032,10 +1044,6 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 	case OP_JNB:
 		op->jump = arg_offset (addr + op->size, buf[op->size - 1]);
 		op->fail = addr + op->size;
-	}
-
-	if (op->ptr != -1 && op->refptr == 0) {
-		op->refptr = 1;
 	}
 
 	if (mask & R_ANAL_OP_MASK_ESIL) {
