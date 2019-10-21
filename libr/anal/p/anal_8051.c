@@ -886,9 +886,6 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 		i++;
 	}
 
-	op->jump = op->fail = -1;
-	op->ptr = op->val = -1;
-
 	ut8 arg1 = _8051_ops[i].arg1;
 	ut8 arg2 = _8051_ops[i].arg2;
 
@@ -940,6 +937,9 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 
 	// TODO: op->datatype
 
+	op->ptr = -1;
+	op->val = -1;
+
 	switch (arg1) {
 	default:
 	break; case A_DIRECT:
@@ -968,6 +968,8 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 		op->val = (arg1 == A_RI || arg1 == A_RN) ? buf[1] : buf[2];
 	}
 
+	op->jump = -1;
+	op->fail = -1;
 	switch(_8051_ops[i].instr) {
 	default:
 	break; case OP_PUSH:
@@ -984,21 +986,39 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 		op->stackptr = 2;
 		if (arg1 == A_ADDR11) {
 			op->jump = arg_addr11 (addr + op->size, buf);
-			op->fail = addr + op->size;
 		} else if (arg1 == A_ADDR16) {
 			op->jump = 0x100 * buf[1] + buf[2];
-			op->fail = addr + op->size;
 		}
 	break; case OP_JMP:
 		if (arg1 == A_ADDR11) {
 			op->jump = arg_addr11 (addr + op->size, buf);
-			op->fail = addr + op->size;
 		} else if (arg1 == A_ADDR16) {
 			op->jump = 0x100 * buf[1] + buf[2];
-			op->fail = addr + op->size;
 		} else if (arg1 == A_OFFSET) {
 			op->jump = arg_offset (addr + op->size, buf[1]);
-			op->fail = addr + op->size;
+		} else if (buf[1] == 0x02) {
+			op->switch_op = r_anal_switch_op_new (addr, 0, 0);
+			int i = 1;
+			while(true) {
+				if (buf[i] == 0x00) {
+					i += 1;
+					continue;
+				}
+				if (buf[i] == 0x02) {
+					r_anal_switch_op_add_case ( op->switch_op
+						, addr + i
+						, (i - 1)/4
+						, (buf[i + 1] << 8) | buf[i + 2]);
+					if (op->jump == -1) {
+						//op->jump = (buf[i + 1] << 8) | buf[i + 2];
+					}
+					i += 3;
+					continue;
+				}
+				break;
+			}
+			op->switch_op->max_val = (i - 1)/4;
+			op->size += i - 1;
 		}
 	break;
 	case OP_CJNE:
