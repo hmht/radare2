@@ -1013,16 +1013,23 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 					continue;
 				}
 				if (buf[i] == 0x02) {
+					ut16 target = (buf[i + 1] << 8) | buf[i + 2];
 					r_anal_switch_op_add_case ( op->switch_op
 						, addr + i
 						, (i - 1)/4
-						, (buf[i + 1] << 8) | buf[i + 2]);
+						, target);
 					if (op->jump == -1) {
-						//op->jump = (buf[i + 1] << 8) | buf[i + 2];
+						//op->jump = target;
 					}
 					r_strbuf_appendf (anal->cmdtail,
+						"axc 0x%"PFMT64x " 0x%"PFMT64x "\n",
+						(ut64)target, (ut64)addr);
+					r_strbuf_appendf (anal->cmdtail,
 						"f case.0x%"PFMT64x ".%d 1 @ 0x%08"PFMT64x "\n",
-						(ut64)addr, (int)(i - 1)/4, (ut64)(buf[i + 1] << 8) | buf[i + 2]);
+						(ut64)addr, (int)(i - 1)/4, (ut64)target);
+					r_strbuf_appendf (anal->cmdtail,
+						"afbe 0x%"PFMT64x " 0x%"PFMT64x "\n",
+						(ut64)addr, (ut64)target);
 					i += 3;
 					continue;
 				}
@@ -1030,7 +1037,9 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 			}
 			op->switch_op->def_val = (i - 1)/4;
 			op->switch_op->max_val = (i - 1)/4;
-			op->size += i - 1;
+			//op->size += i - 1;
+			r_strbuf_appendf (anal->cmdtail,case_addr_loc
+				"Cd %d %d @ 0x%08"PFMT64x"\n", 4, (i - 1)/4 + 1, addr + 1);
 		}
 	break;
 	case OP_CJNE:
