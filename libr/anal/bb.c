@@ -110,6 +110,11 @@ R_API int r_anal_bb(RAnal *anal, RAnalBlock *bb, ut64 addr, const ut8 *buf, ut64
 		case R_ANAL_OP_TYPE_RET:
 			bb->type |= R_ANAL_BB_TYPE_LAST;
 			goto beach;
+		case R_ANAL_OP_TYPE_SWITCH:
+			if (op->switch_op) {
+				bb->switch_op = op->switch_op;
+			}
+			goto beach;
 		case R_ANAL_OP_TYPE_LEA:
 		{
 			RAnalValue *src = op->src[0];

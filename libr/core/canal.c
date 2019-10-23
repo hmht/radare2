@@ -1700,7 +1700,6 @@ static int core_anal_graph_nodes(RCore *core, RAnalFunction *fcn, int opts, PJ *
 R_API int r_core_anal_bb(RCore *core, RAnalFunction *fcn, ut64 addr, int head) {
 	RAnalBlock *bb, *bbi;
 	RListIter *iter;
-	ut64 jump, fail;
 	int rc = true;
 	int ret = R_ANAL_RET_NEW;
 	bool x86 = core->anal->cur->arch && !strcmp (core->anal->cur->arch, "x86");
@@ -1752,13 +1751,20 @@ R_API int r_core_anal_bb(RCore *core, RAnalFunction *fcn, ut64 addr, int head) {
 				ret = r_anal_fcn_bb_overlaps (fcn, bb);
 				if (ret == R_ANAL_RET_NEW) {
 					r_anal_fcn_bbadd (fcn, bb);
-					fail = bb->fail;
-					jump = bb->jump;
-					if (fail != -1) {
-						r_core_anal_bb (core, fcn, fail, false);
+					if (bb->fail != -1) {
+						r_core_anal_bb (core, fcn, bb->fail, false);
 					}
-					if (jump != -1) {
-						r_core_anal_bb (core, fcn, jump, false);
+					if (bb->jump != -1) {
+						r_core_anal_bb (core, fcn, bb->jump, false);
+					}
+					if (bb->switch_op && bb->switch_op->cases) {
+						// FYI: I've never seen this code reached, feel free to throw it out at the slightest inconvenience
+						// it's duplicated here because I don't understand the relationship between r_anal_fcn and r_core_anal_fcn
+						RListIter*iter;
+						RAnalCaseOp*c;
+						r_list_foreach(bb->switch_op->cases, iter, c) {
+							r_core_anal_bb (core, fcn, c->jump, false);
+						}
 					}
 				}
 			}

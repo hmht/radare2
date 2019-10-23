@@ -1244,6 +1244,14 @@ repeat:
 			goto beach;
 			// For some reason, branch delayed code (MIPS) needs to continue
 			break;
+		case R_ANAL_OP_TYPE_SWITCH: if (op.switch_op) {
+			RListIter*iter;
+			RAnalCaseOp*c;
+			r_list_foreach (op.switch_op->cases, iter, c) {
+				r_anal_fcn_bb (anal, fcn, c->jump, depth);
+			} } else {
+				eprintf ("Warning: switch op heuristic failed at %x\n", op.addr );
+			}
 		case R_ANAL_OP_TYPE_UCALL:
 		case R_ANAL_OP_TYPE_RCALL:
 		case R_ANAL_OP_TYPE_ICALL:
@@ -2032,9 +2040,6 @@ R_API int r_anal_fcn_cc(RAnal *anal, RAnalFunction *fcn) {
 			if (bb->fail != UT64_MAX) {
 				E++;
 			}
-		}
-		if (bb->cases) { // dead code ?
-			E += r_list_length (bb->cases);
 		}
 		if (bb->switch_op && bb->switch_op->cases) {
 			E += r_list_length (bb->switch_op->cases);

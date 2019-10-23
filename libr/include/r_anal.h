@@ -580,7 +580,6 @@ typedef struct r_anal_case_obj_t {
 	ut32 cond; // TODO: treat like a regular condition
 	ut64 bb_ref_to;
 	ut64 bb_ref_from;
-	RAnalBlock *jumpbb;
 } RAnalCaseOp;
 
 typedef struct r_anal_switch_obj_t {
@@ -910,7 +909,6 @@ typedef struct r_anal_bb_t {
 	RAnalBlock *prev;
 	RAnalBlock *failbb;
 	RAnalBlock *jumpbb;
-	RList /*struct r_anal_bb_t*/ *cases;
 	ut8 *parent_reg_arena;
 	int stackptr;
 	int parent_stackptr;

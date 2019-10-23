@@ -320,9 +320,6 @@ static int handle_bb_cf_recursive_descent(RAnal *anal, RAnalState *state) {
 				if (caseop) {
 					if (r_anal_state_addr_is_valid (state, caseop->jump) ) {
 						jmp_list = r_anal_ex_perform_analysis (anal, state, caseop->jump );
-						if (jmp_list) {
-							caseop->jumpbb = (RAnalBlock *)r_list_get_n (jmp_list, 0);
-						}
 						if (state->done == 1) {
 							IFDBG eprintf (" Looks like this jmp (bb @ 0x%04"PFMT64x") found a return.\n", addr);
 							state->done = 0;

@@ -1035,11 +1035,21 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 				}
 				break;
 			}
-			op->switch_op->def_val = (i - 1)/4;
-			op->switch_op->max_val = (i - 1)/4;
+			int ncases = (i - 1)/4;
+			op->switch_op->def_val = 1;
+			op->switch_op->max_val = ncases;
 			//op->size += i - 1;
-			r_strbuf_appendf (anal->cmdtail,case_addr_loc
-				"Cd %d %d @ 0x%08"PFMT64x"\n", 4, (i - 1)/4 + 1, addr + 1);
+			r_strbuf_appendf (anal->cmdtail,
+				"Cd %d %d @ 0x%08"PFMT64x"\n", 4, ncases, addr + 1);
+			r_strbuf_appendf (anal->cmdtail,
+				"CCu switch table (%d cases) at 0x%"PFMT64x " @ 0x%"PFMT64x "\n"
+				, ncases
+				, addr
+				, addr);
+			r_strbuf_appendf (anal->cmdtail,
+				"f switch.0x%08"PFMT64x" 1 @ 0x%08"PFMT64x"\n"
+				, addr
+				, addr);
 		}
 	break;
 	case OP_CJNE:
