@@ -1021,15 +1021,6 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 					if (op->jump == -1) {
 						//op->jump = target;
 					}
-					r_strbuf_appendf (anal->cmdtail,
-						"axc 0x%"PFMT64x " 0x%"PFMT64x "\n",
-						(ut64)target, (ut64)addr);
-					r_strbuf_appendf (anal->cmdtail,
-						"f case.0x%"PFMT64x ".%d 1 @ 0x%08"PFMT64x "\n",
-						(ut64)addr, (int)(i - 1)/4, (ut64)target);
-					r_strbuf_appendf (anal->cmdtail,
-						"afbe 0x%"PFMT64x " 0x%"PFMT64x "\n",
-						(ut64)addr, (ut64)target);
 					i += 3;
 					continue;
 				}
@@ -1039,17 +1030,6 @@ static int i8051_op(RAnal *anal, RAnalOp *op, ut64 addr, const ut8 *buf, int len
 			op->switch_op->def_val = 1;
 			op->switch_op->max_val = ncases;
 			//op->size += i - 1;
-			r_strbuf_appendf (anal->cmdtail,
-				"Cd %d %d @ 0x%08"PFMT64x"\n", 4, ncases, addr + 1);
-			r_strbuf_appendf (anal->cmdtail,
-				"CCu switch table (%d cases) at 0x%"PFMT64x " @ 0x%"PFMT64x "\n"
-				, ncases
-				, addr
-				, addr);
-			r_strbuf_appendf (anal->cmdtail,
-				"f switch.0x%08"PFMT64x" 1 @ 0x%08"PFMT64x"\n"
-				, addr
-				, addr);
 		}
 	break;
 	case OP_CJNE:

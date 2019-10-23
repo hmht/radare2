@@ -1243,15 +1243,38 @@ repeat:
 			// (and already covered by a bb) many times
 			goto beach;
 			// For some reason, branch delayed code (MIPS) needs to continue
-			break;
-		case R_ANAL_OP_TYPE_SWITCH: if (op.switch_op) {
-			RListIter*iter;
-			RAnalCaseOp*c;
-			r_list_foreach (op.switch_op->cases, iter, c) {
-				r_anal_fcn_bb (anal, fcn, c->jump, depth);
-			} } else {
-				eprintf ("Warning: switch op heuristic failed at %x\n", op.addr );
-			}
+		break; case R_ANAL_OP_TYPE_SWITCH:
+			if (op.switch_op) {
+				RListIter*iter;
+				RAnalCaseOp*c;
+				int i = 0;
+				r_list_foreach (op.switch_op->cases, iter, c) {
+					r_strbuf_appendf (anal->cmdtail,
+						"axc 0x%"PFMT64x " 0x%"PFMT64x "\n",
+						(ut64)c->jump, (ut64)op.addr);
+					r_strbuf_appendf (anal->cmdtail,
+						"f case.0x%"PFMT64x ".%d 1 @ 0x%08"PFMT64x "\n",
+						(ut64)op.addr, i++, (ut64)c->jump);
+					r_strbuf_appendf (anal->cmdtail,
+						"afbe 0x%"PFMT64x " 0x%"PFMT64x "\n",
+						(ut64)op.addr, (ut64)c->jump);
+					r_anal_fcn_bb (anal, fcn, c->jump, depth);
+				} } else {
+					eprintf ("Warning: switch_op heuristic failed at %x\n", op.addr );
+				}
+			r_strbuf_appendf (anal->cmdtail,
+				"Cd %d %d @ 0x%08"PFMT64x"\n", 4, op.switch_op->cases->length, op.addr + 1);
+			r_strbuf_appendf (anal->cmdtail,
+				"CCu switch table (%d cases) at 0x%"PFMT64x " @ 0x%"PFMT64x "\n"
+				, op.switch_op->cases->length
+				, addr
+				, addr);
+			r_strbuf_appendf (anal->cmdtail,
+				"f switch.0x%08"PFMT64x" 1 @ 0x%08"PFMT64x"\n"
+				, op.addr
+				, op.addr);
+				//gotoBeach (R_ANAL_RET_END); // why not go to beach? :(
+		break;
 		case R_ANAL_OP_TYPE_UCALL:
 		case R_ANAL_OP_TYPE_RCALL:
 		case R_ANAL_OP_TYPE_ICALL:
